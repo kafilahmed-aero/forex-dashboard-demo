@@ -247,7 +247,7 @@ export async function fetchPrices(pairs) {
             }
             const retentionHours = config.priceHistoryRetentionHours || 24;
             const cutoff = Date.now() - retentionHours * 60 * 60 * 1000;
-            priceHistoryCache.set(item.pair, history.filter(h => h.timestamp >= cutoff));
+            priceHistoryCache.set(item.pair, history.filter(h => h.timestamp >= cutoff).slice(-120));
           }
         } catch (err) {
           logger.error("price_ingestion.yahoo_fetch_item_failed", { symbol: item.symbol, error: err.message });
@@ -306,7 +306,7 @@ export async function fetchPrices(pairs) {
               }
             }
             const cutoff = Date.now() - 65 * 60 * 1000;
-            priceHistoryCache.set(item.pair, history.filter(h => h.timestamp >= cutoff));
+            priceHistoryCache.set(item.pair, history.filter(h => h.timestamp >= cutoff).slice(-120));
           }
         } catch (yahooErr) {
           logger.error("price_ingestion.binance_yahoo_fallback_failed", { pair: item.pair, error: yahooErr.message });

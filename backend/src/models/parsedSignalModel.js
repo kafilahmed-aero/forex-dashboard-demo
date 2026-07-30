@@ -227,6 +227,12 @@ parsedSignalSchema.index(
   }
 );
 
+parsedSignalSchema.index({
+  pair: 1,
+  action: 1,
+  signalState: 1,
+});
+
 export const ParsedSignal =
   mongoose.models.ParsedSignal ||
   mongoose.model("ParsedSignal", parsedSignalSchema);

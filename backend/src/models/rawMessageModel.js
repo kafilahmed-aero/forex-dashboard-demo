@@ -68,5 +68,8 @@ rawMessageSchema.index(
   }
 );
 
+// Automatic 24-hour TTL Retention Policy for raw messages to protect MongoDB Free Tier storage
+rawMessageSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 });
+
 export const RawMessage =
   mongoose.models.RawMessage || mongoose.model("RawMessage", rawMessageSchema);

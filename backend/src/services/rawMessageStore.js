@@ -6,11 +6,36 @@ import path from "path";
 const OFFLINE_QUEUE_DIR = path.resolve(process.cwd(), "data");
 const OFFLINE_QUEUE_FILE = path.join(OFFLINE_QUEUE_DIR, "offline_telegram_queue.json");
 
+const MAX_IN_MEMORY_RAW_MESSAGES = 100;
+const MAX_MESSAGE_KEYS_SIZE = 2000;
+
 const rawMessages = [];
 const messageKeys = new Set();
 let fileWriteQueue = Promise.resolve();
 let flushingInProgress = false;
 let cachedQueuedCount = 0;
+
+export function getMessageKeysCount() {
+  return messageKeys.size;
+}
+
+function pruneMessageKeysIfNeeded() {
+  if (messageKeys.size > MAX_MESSAGE_KEYS_SIZE) {
+    const keysToDelete = messageKeys.size - MAX_MESSAGE_KEYS_SIZE + 500;
+    const iterator = messageKeys.values();
+    for (let i = 0; i < keysToDelete; i++) {
+      const next = iterator.next();
+      if (next.done) break;
+      messageKeys.delete(next.value);
+    }
+  }
+}
+
+function capRawMessagesIfNeeded() {
+  if (rawMessages.length > MAX_IN_MEMORY_RAW_MESSAGES) {
+    rawMessages.length = MAX_IN_MEMORY_RAW_MESSAGES;
+  }
+}
 
 async function ensureQueueDirExists() {
   try {
@@ -116,6 +141,7 @@ export async function flushOfflineQueue() {
 export async function storeRawMessage(rawMessage) {
   const messageToStore = {
     ...rawMessage,
+    fetchedAt: rawMessage.fetchedAt || new Date(),
     hasText: rawMessage.hasText ?? String(rawMessage.text || "").trim().length > 0,
     hasMedia: rawMessage.hasMedia ?? Boolean(rawMessage.mediaType),
     textLength: rawMessage.textLength ?? String(rawMessage.text || "").length,
@@ -131,6 +157,7 @@ export async function storeRawMessage(rawMessage) {
   }
 
   messageKeys.add(key);
+  pruneMessageKeysIfNeeded();
 
   if (isMongoConnected()) {
     // Flush any pending queue messages first (async)
@@ -139,6 +166,7 @@ export async function storeRawMessage(rawMessage) {
     try {
       const savedMessage = await RawMessage.create(messageToStore);
       rawMessages.unshift(savedMessage.toObject());
+      capRawMessagesIfNeeded();
     } catch (error) {
       if (error.code === 11000) {
         return {
@@ -152,6 +180,7 @@ export async function storeRawMessage(rawMessage) {
   } else {
     // MongoDB offline fallback: Store in memory and local persistent JSON file
     rawMessages.unshift(messageToStore);
+    capRawMessagesIfNeeded();
     await appendToOfflineFile(messageToStore);
   }
 

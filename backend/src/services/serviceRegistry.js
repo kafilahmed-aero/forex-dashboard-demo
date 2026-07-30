@@ -5,8 +5,15 @@ import { startMarketEngine } from "./marketEngineService.js";
 import { startPriceMonitoring } from "./priceMonitoringScheduler.js";
 import { startTelegramListener } from "./telegramIngestionService.js";
 import { startKeepAlive } from "./keepAliveService.js";
+import { startMemoryProfiler } from "../utils/memoryProfiler.js";
 
 const services = [
+  {
+    name: "Memory Profiler",
+    start: async () => {
+      startMemoryProfiler(60000);
+    }
+  },
   {
     name: "Database Connection",
     start: async () => {

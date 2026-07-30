@@ -1,11 +1,20 @@
 import { Router } from "express";
-import { getHealth, getLiveStability, getDebugSignals } from "../controllers/healthController.js";
+import {
+  getHealth,
+  getLiveStability,
+  getDebugSignals,
+  getLivePriceController,
+  getSettingsController,
+  updateSettingsController,
+} from "../controllers/healthController.js";
 
-// routes define API URLs and connect them to controller functions.
 const router = Router();
 
 router.get("/", getHealth);
 router.get("/live-stability", getLiveStability);
 router.get("/debug-signals", getDebugSignals);
+router.get("/live-price/:symbol?", getLivePriceController);
+router.get("/settings", getSettingsController);
+router.post("/settings", updateSettingsController);
 
 export default router;

@@ -5,8 +5,33 @@ import { updatePairStateFromSignal } from "./pairStateEngine.js";
 import { isExpiredTestSignal } from "./testSignalExpiry.js";
 import { logger } from "../utils/logger.js";
 
+const MAX_IN_MEMORY_PARSED_SIGNALS = 100;
+const MAX_SIGNAL_KEYS_SIZE = 2000;
+
 const parsedSignals = [];
 const signalKeys = new Set();
+
+export function getSignalKeysCount() {
+  return signalKeys.size;
+}
+
+function pruneSignalKeysIfNeeded() {
+  if (signalKeys.size > MAX_SIGNAL_KEYS_SIZE) {
+    const keysToDelete = signalKeys.size - MAX_SIGNAL_KEYS_SIZE + 500;
+    const iterator = signalKeys.values();
+    for (let i = 0; i < keysToDelete; i++) {
+      const next = iterator.next();
+      if (next.done) break;
+      signalKeys.delete(next.value);
+    }
+  }
+}
+
+function capParsedSignalsIfNeeded() {
+  if (parsedSignals.length > MAX_IN_MEMORY_PARSED_SIGNALS) {
+    parsedSignals.length = MAX_IN_MEMORY_PARSED_SIGNALS;
+  }
+}
 
 // Parsed signal storage is separate from raw message storage by design.
 // Parser quality can improve without losing the original Telegram message.
@@ -32,12 +57,15 @@ export async function storeParsedSignal(signal) {
   }
 
   signalKeys.add(key);
+  pruneSignalKeysIfNeeded();
+
   const signalWithDuplicateMetadata = await addDuplicateMetadata(signal);
 
   if (isMongoConnected()) {
     try {
       const savedSignal = await ParsedSignal.create(signalWithDuplicateMetadata);
       parsedSignals.unshift(savedSignal.toObject());
+      capParsedSignalsIfNeeded();
     } catch (error) {
       if (error.code === 11000) {
         return {
@@ -51,6 +79,7 @@ export async function storeParsedSignal(signal) {
     }
   } else {
     parsedSignals.unshift(signalWithDuplicateMetadata);
+    capParsedSignalsIfNeeded();
   }
 
   updatePairStateFromSignal(signalWithDuplicateMetadata);
@@ -193,9 +222,9 @@ async function getActiveSignalsForDuplicateCheck(signal) {
 
   if (isMongoConnected()) {
     return ParsedSignal.find({
-      ...createSignalQuery(filters),
       pair: signal.pair,
       action: signal.action,
+      signalState: { $in: ["ACTIVE", "PARTIAL"] },
       parserClassification: "NEW_SIGNAL",
     })
       .sort({
@@ -206,6 +235,7 @@ async function getActiveSignalsForDuplicateCheck(signal) {
       .lean();
   }
 
+  // Fallback for offline mode when MongoDB is unavailable
   return parsedSignals
     .filter((candidate) => candidate.pair === signal.pair && candidate.action === signal.action)
     .filter((candidate) => signalMatchesFilters(candidate, filters))

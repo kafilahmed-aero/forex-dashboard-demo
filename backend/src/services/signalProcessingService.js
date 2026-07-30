@@ -203,10 +203,10 @@ export async function processRawMessage(rawMessage) {
     const storeResult = await storeParsedSignal(parsedSignal);
     const storedParsedSignal = storeResult.signal || parsedSignal;
 
-    // Trigger Signal Outcome tracking if signal is newly stored in local DB/memory
+    // Trigger Signal Outcome tracking asynchronously (non-blocking for DB save pipeline)
     if (storeResult.stored) {
       if (storedParsedSignal.classification === "NEW_SIGNAL") {
-        await initializeOutcome(storedParsedSignal).catch((err) => {
+        initializeOutcome(storedParsedSignal).catch((err) => {
           logger.error("outcome_initialization.failed", {
             messageKey,
             error: err.message,
@@ -216,7 +216,7 @@ export async function processRawMessage(rawMessage) {
         storedParsedSignal.classification === "UPDATE_SIGNAL" ||
         storedParsedSignal.classification === "RESULT_SIGNAL"
       ) {
-        await processSignalUpdate(storedParsedSignal).catch((err) => {
+        processSignalUpdate(storedParsedSignal).catch((err) => {
           logger.error("outcome_update.failed", {
             messageKey,
             error: err.message,

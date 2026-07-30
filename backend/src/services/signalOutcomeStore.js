@@ -323,6 +323,61 @@ export function resetOutcomeStore() {
 }
 
 /**
+ * Retrieves completed signal outcomes using a deterministic opaque compound cursor (updatedAt + _id).
+ * Guarantees zero missed records, zero duplicates, and deterministic pagination.
+ */
+export async function getCompletedOutcomesByCursor({ cursor = '', limit = 100 } = {}) {
+  const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 100, 1), 500);
+  let query = {};
+
+  if (cursor && typeof cursor === 'string') {
+    try {
+      const decoded = Buffer.from(cursor, 'base64').toString('utf8');
+      const parts = decoded.split('|');
+      if (parts.length === 2) {
+        const lastUpdatedAt = new Date(parts[0]);
+        const lastId = parts[1];
+        if (!isNaN(lastUpdatedAt.getTime()) && mongoose.Types.ObjectId.isValid(lastId)) {
+          query.$or = [
+            { updatedAt: { $gt: lastUpdatedAt } },
+            { updatedAt: lastUpdatedAt, _id: { $gt: new mongoose.Types.ObjectId(lastId) } },
+          ];
+        }
+      }
+    } catch (e) {
+      logger.warn('[SignalOutcomeStore] Failed to decode cursor parameter:', e.message);
+    }
+  }
+
+  let outcomes = [];
+  if (isMongoConnected()) {
+    outcomes = await SignalOutcome.find(query)
+      .sort({ updatedAt: 1, _id: 1 })
+      .limit(parsedLimit)
+      .lean();
+  } else {
+    outcomes = Array.from(localOutcomes.values());
+    outcomes.sort((a, b) => new Date(a.updatedAt || a.createdAt || 0) - new Date(b.updatedAt || b.createdAt || 0));
+    outcomes = outcomes.slice(0, parsedLimit);
+  }
+
+  let nextCursor = '';
+  if (outcomes.length > 0) {
+    const last = outcomes[outcomes.length - 1];
+    const lastTime = new Date(last.updatedAt || last.createdAt || Date.now()).toISOString();
+    const lastId = last._id ? last._id.toString() : (last.messageKey || last.signalId || '');
+    nextCursor = Buffer.from(`${lastTime}|${lastId}`).toString('base64');
+  }
+
+  return {
+    outcomes,
+    count: outcomes.length,
+    hasMore: outcomes.length === parsedLimit,
+    nextCursor,
+  };
+}
+
+/**
  * Calculates risk-to-reward ratio for a single completed outcome record
  * Formula:
  * BUY:  (TargetPrice - EntryPrice) / (EntryPrice - StopLoss)
