@@ -37,7 +37,7 @@ export function createApp() {
   app.use("/api/health", healthRoutes);
   app.use("/api/auth", authRoutes);
   app.use("/api/raw-messages", requireAuth, rawMessageRoutes);
-  app.use("/api/signals", requireAuth, signalRoutes);
+  app.use("/api/signals", signalRoutes);
   app.use("/api/consensus", requireAuth, consensusRoutes);
   app.use("/api/system", requireAuth, systemRoutes);
 

@@ -4,6 +4,7 @@ import {
   getMonitoredTelegramChannelRefs,
   monitoredTelegramChannels,
 } from "./telegramChannels.js";
+import { logger } from "../utils/logger.js";
 
 const nodeEnv = process.env.NODE_ENV || "development";
 const isProduction = nodeEnv === "production";
@@ -31,6 +32,7 @@ const rawConfig = {
   logLevel: process.env.LOG_LEVEL || (isProduction ? "info" : "debug"),
   clientUrl: clientUrls[0],
   clientUrls,
+  internalServiceKey: process.env.INTERNAL_SERVICE_KEY || "",
   auth: {
     jwtSecret:
       process.env.AUTH_JWT_SECRET ||
@@ -107,6 +109,17 @@ export const config = new Proxy({}, {
   }
 });
 
+function validateInternalServiceKey() {
+  if (!process.env.INTERNAL_SERVICE_KEY) {
+    logger.error("config.missing_internal_service_key", {
+      error: "INTERNAL_SERVICE_KEY environment variable is missing."
+    });
+    console.error("[ConfigError] CRITICAL: INTERNAL_SERVICE_KEY environment variable is required.");
+    process.exit(1);
+  }
+}
+
+validateInternalServiceKey();
 validateProductionConfig();
 
 function parseAuthUsers() {
