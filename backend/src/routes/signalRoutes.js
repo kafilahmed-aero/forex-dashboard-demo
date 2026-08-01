@@ -7,6 +7,7 @@ import { requireInternalService } from "../middleware/internalServiceMiddleware.
 const router = Router();
 
 router.get("/", requireAuth, getParsedSignalsController);
+router.get("/active", requireInternalService, getParsedSignalsController);
 router.get("/outcomes", requireInternalService, getCompletedOutcomesController);
 
 export default router;
