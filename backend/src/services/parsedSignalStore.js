@@ -249,6 +249,10 @@ function isMongoConnected() {
 function createSignalQuery(filters) {
   const query = {};
 
+  if (filters.classification) {
+    query.classification = filters.classification;
+  }
+
   if (filters.activeOnly) {
     query.signalState = {
       $in: ["ACTIVE", "PARTIAL"],
@@ -273,6 +277,10 @@ function createSignalQuery(filters) {
 }
 
 function signalMatchesFilters(signal, filters) {
+  if (filters.classification && signal.classification !== filters.classification) {
+    return false;
+  }
+
   if (filters.activeOnly && !["ACTIVE", "PARTIAL"].includes(signal.signalState)) {
     return false;
   }

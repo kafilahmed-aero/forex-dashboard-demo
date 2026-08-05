@@ -16,15 +16,16 @@ export async function getParsedSignalsController(req, res) {
     );
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
+    const filters = { classification: "NEW_SIGNAL" };
     const isMongoConnected = mongoose.connection.readyState === 1;
     if (isMongoConnected) {
-      const signals = await ParsedSignal.find({})
+      const signals = await ParsedSignal.find(filters)
         .sort({ createdAt: -1 })
         .limit(100);
       return res.status(200).json(signals);
     } else {
       // Offline fallback: fetch in-memory signals from the store
-      const signals = await getParsedSignals(100);
+      const signals = await getParsedSignals(100, filters);
       return res.status(200).json(signals);
     }
   } catch (error) {
