@@ -468,7 +468,7 @@ function formatConsensusSummary(consensusPairs) {
     return "Active and partial signals only. No fresh weighted consensus is available.";
   }
 
-  return `${pairCount} fresh pair${pairCount === 1 ? "" : "s"}, ${signalCount} active/partial signal${signalCount === 1 ? "" : "s"}. Closed, expired, promo, and noise are excluded.`;
+  return `${pairCount} fresh pair${pairCount === 1 ? "" : "s"}, ${signalCount} active signal${signalCount === 1 ? "" : "s"} within 1-hour window. Closed, expired (>60m), and promo are excluded.`;
 }
 
 function formatZone(zone) {

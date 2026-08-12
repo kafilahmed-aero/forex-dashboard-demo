@@ -44,7 +44,7 @@ const rawConfig = {
   mongoUri:
     process.env.MONGODB_URI ||
     "mongodb://127.0.0.1:27017/telegram_signal_consensus",
-  signalExpirationMinutes: Number(process.env.SIGNAL_EXPIRATION_MINUTES) || 360,
+  signalExpirationMinutes: Number(process.env.SIGNAL_EXPIRATION_MINUTES) || 60,
   priceHistoryRetentionHours: Number(process.env.PRICE_HISTORY_RETENTION_HOURS) || 24,
   telegram: {
     apiId: Number(process.env.TELEGRAM_API_ID) || null,

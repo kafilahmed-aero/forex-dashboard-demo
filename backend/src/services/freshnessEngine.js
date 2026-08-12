@@ -27,36 +27,22 @@ function getFreshnessByAge(ageMinutes) {
     };
   }
 
-  if (ageMinutes <= 45) {
+  if (ageMinutes <= 30) {
     return {
       weight: 0.85,
       level: "FRESH",
     };
   }
 
-  if (ageMinutes <= 90) {
+  if (ageMinutes <= 60) {
     return {
-      weight: 0.70,
+      weight: 0.50,
       level: "ACTIVE",
     };
   }
 
-  if (ageMinutes <= 180) {
-    return {
-      weight: 0.50,
-      level: "AGING",
-    };
-  }
-
-  if (ageMinutes <= 360) {
-    return {
-      weight: 0.30,
-      level: "WEAK",
-    };
-  }
-
   return {
-    weight: 0.10,
+    weight: 0,
     level: "STALE",
   };
 }
