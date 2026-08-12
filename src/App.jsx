@@ -122,7 +122,7 @@ function DashboardShell({ isAuthenticated, user, onLogout }) {
 
       <aside
         className={`fixed inset-y-0 left-0 z-[70] flex w-[min(20rem,88vw)] flex-col border-r border-slate-200 bg-white p-4 shadow-2xl shadow-slate-950/15 transition-transform duration-300 ease-out dark:border-white/10 dark:bg-[#080E1B] ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          isMobileMenuOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full pointer-events-none"
         }`}
         aria-hidden={!isMobileMenuOpen}
       >

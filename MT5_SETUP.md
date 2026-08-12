@@ -28,7 +28,7 @@ This guide describes the complete procedure for connecting your **MetaTrader 5 (
 
 ## 3. Compiling the Expert Advisor (`FxDeskBridgeEA.mq5`)
 1. In MT5, open the **MetaQuotes Language Editor** (MetaEditor) by pressing `F4` or clicking the MetaEditor icon in the toolbar.
-2. Inside MetaEditor, go to **File** ➔ **Open** and select the [FxDeskBridgeEA.mq5](file:///c:/Users/Lenovo/forex-dashboard-demo/FxDeskBridgeEA.mq5) file from your workspace root.
+2. Inside MetaEditor, go to **File** ➔ **Open** and select the [FxDeskBridgeEA.mq5](file:///c:/Users/kabir/OneDrive/Desktop/forex-dashboard-demo/FxDeskBridgeEA.mq5) file from your workspace root.
 3. Click the **Compile** button in the top toolbar (or press `F7`).
 4. Ensure the **Compile** output panel at the bottom shows:
    ```text

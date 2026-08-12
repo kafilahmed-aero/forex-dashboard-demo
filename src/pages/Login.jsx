@@ -47,7 +47,7 @@ function Login({ isAuthenticated, onLogin }) {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#050B16] text-white">
+    <main className="min-h-screen overflow-x-hidden bg-[#050B16] text-white">
       <div className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
         <section className="relative hidden border-r border-white/10 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.24),transparent_30%),linear-gradient(145deg,#07101f,#0B1120_52%,#020617)] p-10 lg:flex lg:flex-col">
           <div className="flex items-center gap-3">
